@@ -53,7 +53,8 @@ COPY catalog $TRINO_HOME/etc/catalog
 COPY init/post-init.sh /app/init/post-init.sh
 COPY init/post-init.sql /app/init/post-init.sql
 
-RUN chmod +x /app/init/post-init.sh
+RUN chmod -R 777 /app/init && \
+    chmod +x /app/init/post-init.sh
 
 # Expose Trino ports
 EXPOSE 8080 22
