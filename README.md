@@ -238,6 +238,10 @@ When the `dbt_etl.py` DAG runs, check the `Nessie-CLI`:
 
 ![Nessie-Cli-Logs](readme-images/nessie-logs.png) 
 
+In the final output from the Airflow web server:
+
+![Airflow-output](readme-images/airflow-output.png)
+
 
 ## Deep Notes:
 ### [1] 
