@@ -74,7 +74,7 @@ This project aims to develop a data pipeline that seamlessly integrates ETL proc
 
 1. Clone The Repository:
 ```bash
-git clone dbt-iceberg-nessie-catalog.git
+git clone https://github.com/mcagriaktas/dbt-iceberg-nessie-catalog.git
 ```
 
 2. Create Docker Network:
