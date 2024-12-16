@@ -1,0 +1,21 @@
+jaffle_shop:
+  target: dev
+  outputs:
+    dev:
+      type: trino
+      user: trino
+      host: 172.80.0.80
+      port: 8080
+      database: jaffle_shop_iceberg
+      schema: jaffle_shop_sc
+      threads: 4
+
+    postgres_dev:
+      type: postgres
+      host: 172.80.0.10       
+      port: 5432           
+      user: cagri      
+      password: 3541  
+      dbname: jaffle_shop_db  
+      schema: jaffle_shop_sc       
+      threads: 4

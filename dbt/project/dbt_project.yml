@@ -1,0 +1,39 @@
+
+name: 'jaffle_shop'
+version: '1.0.0'
+
+profile: 'jaffle_shop'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Configuring models
+models:
+  jaffle_shop:
+    example:
+      +materialized: table
+
+# When you set these lines, you can customize your s3 bucket path:
+# dbt_project.yml
+# seeds:
+#   jaffle_shop:
+#     raw_customers:
+#       +schema: jaffle_shop_sc
+#       +database: jaffle_shop_iceberg
+#       +enabled: true
+#     raw_orders:
+#       +schema: jaffle_shop_sc
+#       +database: jaffle_shop_iceberg
+#       +enabled: true
+#     raw_payments:
+#       +schema: jaffle_shop_sc
+#       +database: jaffle_shop_iceberg
+#       +enabled: true
