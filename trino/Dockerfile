@@ -50,7 +50,10 @@ COPY etc/jvm.config $TRINO_HOME/etc/jvm.config
 COPY etc/log.properties $TRINO_HOME/etc/log.properties
 COPY etc/node.properties $TRINO_HOME/etc/node.properties
 COPY catalog $TRINO_HOME/etc/catalog
-COPY init /app/init
+COPY init/post-init.sh /app/init/post-init.sh
+COPY init/post-init.sql /app/init/post-init.sql
+
+RUN chmod +x /app/init/post-init.sh
 
 # Expose Trino ports
 EXPOSE 8080 22
