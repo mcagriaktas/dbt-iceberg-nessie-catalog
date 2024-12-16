@@ -278,7 +278,6 @@ In the final output from the Airflow web server:
 `dbt init [project_name]`:
 ```
   - The project and profile are already set up, so there's no need to deploy a new project. However, if needed, refer to the official documentation and ensure that all *.sql files include the following parameters:
-  ```bash
   {{ config(
     materialized='table',   
     format='iceberg',           
