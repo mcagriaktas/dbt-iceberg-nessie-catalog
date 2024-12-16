@@ -1,0 +1,16 @@
+quarkus:
+  datasource:
+    db-kind: postgresql
+    username: cagri
+    password: 3541
+    jdbc:
+      url: jdbc:postgresql://postgres:5432/nessie_db?currentSchema=nessie
+
+nessie:
+  version: 2
+  server:
+    port: 19120
+    server-api-version: 2
+  version-store-type: JDBC
+  reference:
+    default-name: main

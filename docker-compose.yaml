@@ -1,0 +1,140 @@
+services:
+  trino:
+    container_name: trino
+    build:
+      context: ./trino
+      dockerfile: Dockerfile
+      args:
+        TRINO_VERSION: ${TRINO_VERSION}
+    ports:
+      - '8080:8080'
+      - "2222:22"
+    volumes:
+      - ./trino/etc/config.properties:/opt/trino/etc/config.properties:ro
+      - ./trino/etc/jvm.config:/opt/trino/etc/jvm.config:ro
+      - ./trino/etc/log.properties:/opt/trino/etc/log.properties:ro
+      - ./data_logs/trino_data_logs:/var/log/trino/data
+      - ./trino/catalog:/opt/trino/etc/trino/catalog
+      - ./trino/init:/app/init
+    depends_on:
+      - postgres
+      - nessie
+    networks:
+      dahbest:
+        ipv4_address: 172.80.0.80
+
+  dbt:
+    build:
+      context: ./dbt
+      dockerfile: Dockerfile
+    container_name: dbt
+    volumes:
+      - ./dbt/project:/dbt/project
+      - ./dbt/profiles:/dbt/profiles
+    ports:
+      - "2223:22"
+    depends_on:
+      - trino
+      - postgres
+    networks:
+      dahbest:
+        ipv4_address: 172.80.0.79
+          
+  postgres:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./data_logs/postgres_data_logs:/var/lib/postgresql/data
+      - ./postgres/query_init/jaffle_shop.sql:/docker-entrypoint-initdb.d/jaffle_shop.sql:ro
+    networks:
+      dahbest:
+        ipv4_address: 172.80.0.10
+
+  airflow:
+    container_name: airflow
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+      args:
+        AIRFLOW_VERSION: ${AIRFLOW_VERSION}
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./data_logs/airflow_data_logs:/root/airflow/logs
+      - ./airflow/dags:/root/airflow/dags
+    depends_on:
+      - postgres
+    networks:
+      dahbest:
+        ipv4_address: 172.80.0.11
+
+  nessie:
+    container_name: nessie
+    build:
+      context: ./nessie
+      dockerfile: Dockerfile
+      args:
+        NESSIE_VERSION: ${NESSIE_VERSION}
+        NESSIE_CLI_VERSION: ${NESSIE_CLI_VERSION}
+    ports:
+      - "19120:19120"
+    volumes:
+      - ./nessie/config:/opt/nessie/config
+    depends_on:
+      - postgres
+    networks:
+      dahbest:
+        ipv4_address: 172.80.0.12
+
+  minio:
+    image: minio/minio:${MINIO_VERSION}
+    container_name: minio
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_DOMAIN=${MINIO_DOMAIN}
+      - MINIO_REGION_NAME=${MINIO_REGION_NAME}
+      - MINIO_REGION=${MINIO_REGION}
+    volumes:
+      - ./data_logs/minio_data_logs:/data
+    ports:
+      - 9001:9001
+      - 9000:9000
+    networks:
+      dahbest:
+        ipv4_address: 172.80.0.13
+    command: ["server", "/data", "--console-address", ":9001"]
+
+  mc:
+    image: minio/mc:${MC_VERSION}
+    container_name: mc
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc config host add minio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}) do echo '...waiting...' && sleep 1; done;
+      /usr/bin/mc rm -r --force minio/warehouse;
+      /usr/bin/mc mb minio/warehouse;
+      /usr/bin/mc mb minio/iceberg;
+      /usr/bin/mc anonymous set public minio/warehouse;
+      /usr/bin/mc anonymous set public minio/iceberg;
+      tail -f /dev/null
+      " 
+    depends_on:
+      - minio
+    networks:
+      dahbest:
+        ipv4_address: 172.80.0.14
+
+networks:
+  dahbest:
+    external: true
